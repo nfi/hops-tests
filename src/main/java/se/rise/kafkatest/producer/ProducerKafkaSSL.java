@@ -10,7 +10,11 @@ import org.apache.kafka.clients.producer.Callback;
 public class ProducerKafkaSSL {
     public static void main(String[] args) {
         Properties properties = new Properties();
-        String password = "RR8YCPXAKWE2NDWG9U59O0TY2I1KQB6XHA29UJSIS643FH7NSBGJ3GIY6WRGYW8F";
+	if (args.length < 1) {
+	    System.out.println("Please provide password for keystore");
+	    return;
+	}
+	String password = args[0];
         properties.put("bootstrap.servers", "hops.site:9092");
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
