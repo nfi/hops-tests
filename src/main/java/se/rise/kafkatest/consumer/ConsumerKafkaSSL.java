@@ -7,19 +7,21 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import se.rise.kafkatest.KafkaConfig;
 
 import java.util.Arrays;
 import java.util.Properties;
 
 public class ConsumerKafkaSSL {
+
     public static void main(String[] args) {
         Properties properties = new Properties();
-	if (args.length < 1) {
-	    System.out.println("Please provide password for keystore");
-	    return;
-	}
-	String password = args[0];
-        properties.put("bootstrap.servers", "hops.site:9092");
+        if (args.length < 1) {
+            System.out.println("Please provide password for keystore");
+            return;
+        }
+        String password = args[0];
+        properties.put("bootstrap.servers", KafkaConfig.HOST);
         properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put("group.id", "something");
@@ -40,7 +42,7 @@ public class ConsumerKafkaSSL {
             }
         };
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(properties);
-        consumer.subscribe(Arrays.asList("JoakimControlTopic"));
+        consumer.subscribe(Arrays.asList(KafkaConfig.TOPIC));
 
         try {
             /* Try to consume 100 messages - or 100 timeouts */

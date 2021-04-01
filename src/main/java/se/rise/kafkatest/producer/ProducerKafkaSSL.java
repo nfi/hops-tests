@@ -6,16 +6,18 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.clients.producer.Callback;
+import se.rise.kafkatest.KafkaConfig;
 
 public class ProducerKafkaSSL {
-    public static void main(String[] args) {
+
+   public static void main(String[] args) {
         Properties properties = new Properties();
 	if (args.length < 1) {
 	    System.out.println("Please provide password for keystore");
 	    return;
 	}
 	String password = args[0];
-        properties.put("bootstrap.servers", "hops.site:9092");
+        properties.put("bootstrap.servers", KafkaConfig.HOST);
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("security.protocol", "SSL");
@@ -24,6 +26,7 @@ public class ProducerKafkaSSL {
         properties.put("ssl.keystore.location", "keyStore.jks");
         properties.put("ssl.keystore.password", password);
         properties.put("ssl.key.password", password);
+        properties.put("ssl.endpoint.identification.algorithm", "");
 
         final Callback callback = new Callback() {
             public void onCompletion(RecordMetadata metadata, java.lang.Exception exception) {
@@ -40,9 +43,8 @@ public class ProducerKafkaSSL {
         try {
             for (int i = 0; i < 10; i++) {
                 String v = "{\"quantityKind\":\"temperature\",\"value\":" + Integer.toString(i + 1) + "}";
-                myProducer.send(new ProducerRecord<String, String>("DemoKafkaTopic_9907",
-                                "value", v),
-                        callback);
+                myProducer.send(new ProducerRecord<String, String>(KafkaConfig.TOPIC,
+                                "value", v), callback);
             }
         } catch (Exception e) {
             System.out.println("Kafka Failed...");
