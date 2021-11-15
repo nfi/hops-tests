@@ -10,13 +10,13 @@ import se.rise.kafkatest.KafkaConfig;
 
 public class ProducerKafkaSSL {
 
-   public static void main(String[] args) {
+    public static void main(String[] args) {
         Properties properties = new Properties();
-	if (args.length < 1) {
-	    System.out.println("Please provide password for keystore");
-	    return;
-	}
-	String password = args[0];
+        if (args.length < 1) {
+            System.out.println("Please provide password for keystore");
+            return;
+        }
+        String password = args[0];
         properties.put("bootstrap.servers", KafkaConfig.HOST);
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
