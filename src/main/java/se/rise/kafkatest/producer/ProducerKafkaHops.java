@@ -1,4 +1,5 @@
 package se.rise.kafkatest.producer;
+import java.util.List;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -19,10 +20,13 @@ public class ProducerKafkaHops {
         }
         String topic = args[0];
 
-        properties.put("bootstrap.servers", KafkaConfig.HOST);
+        // hopefully this is the correct way to do it
+        String eps = Hops.getBrokerEndpoints();
+
+        // set the bootstrap server
+        properties.put("bootstrap.servers", eps);
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("ssl.endpoint.identification.algorithm", "");
 
         final Callback callback = new Callback() {
             public void onCompletion(RecordMetadata metadata, java.lang.Exception exception) {
