@@ -5,6 +5,9 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://archiva.hops.works/repository/Hops/"
+    }
 }
 
 configurations {
@@ -15,12 +18,20 @@ configurations {
 dependencies {
     implementation 'org.apache.kafka:kafka-clients:2.8.1'
     implementation 'ch.qos.logback:logback-classic:1.2.2'
+    implementation 'io.hops:hops-util:2.4.0'
     extraLibs 'org.apache.kafka:kafka-clients:2.8.1'
     extraLibs 'ch.qos.logback:logback-classic:1.2.2'
 }
 
-jar {
+jar {    
     from {
             configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
         }
+}
+
+task fatJar(type: Jar) {
+    baseName = 'all-in-one-jar'
+    from { 
+            configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
