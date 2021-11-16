@@ -1,18 +1,25 @@
 package se.rise.kafkatest.producer;
-import java.util.List;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.clients.producer.Callback;
-import se.rise.kafkatest.KafkaConfig;
 import io.hops.util.Hops;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.spark.sql.SparkSession;
 
 public class ProducerKafkaHops {
 
     public static void main(String[] args) {
         Properties properties = new Properties();
         properties = Hops.getKafkaSSLProperties();
+        SparkSession s = Hops.findSpark();
+
+        Logger log = LogManager.getLogger(ProducerKafkaHops.class);
+        log.setLevel(Level.INFO);
+        log.info("Starting Streaming Kafka data with Spark Job (Hopsworks)");
 
         if (args.length < 1) {  
             System.out.println("Usage: java ProducerKafkaHops <topic>");
@@ -42,6 +49,7 @@ public class ProducerKafkaHops {
 
         try {
             for (int i = 0; i < 10; i++) {
+                log.info("Kafka message:" + i);
                 String v = "{\"quantityKind\":\"temperature\",\"value\":" + Integer.toString(i + 1) + "}";
                 myProducer.send(new ProducerRecord<String, String>(topic,
                                 "value", v), callback);

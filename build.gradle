@@ -19,12 +19,13 @@ dependencies {
     implementation 'org.apache.kafka:kafka-clients:2.8.1'
     implementation 'ch.qos.logback:logback-classic:1.2.2'
     implementation 'io.hops:hops-util:2.4.0'
+    implementation 'org.apache.spark:spark-sql_2.12:3.0.3'
     extraLibs 'org.apache.kafka:kafka-clients:2.8.1'
     extraLibs 'ch.qos.logback:logback-classic:1.2.2'
 }
 
 task fatJar(type: Jar) {
-    baseName = 'hops-test-all-in-one-jar'
+    baseName = 'hops-test-all-in-one'
     from { 
             configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
