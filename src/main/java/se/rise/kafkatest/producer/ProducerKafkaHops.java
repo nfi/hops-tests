@@ -16,16 +16,17 @@ public class ProducerKafkaHops {
         Properties properties = new Properties();
         properties = Hops.getKafkaSSLProperties();
         SparkSession s = Hops.findSpark();
-
         Logger log = LogManager.getLogger(ProducerKafkaHops.class);
         log.setLevel(Level.INFO);
-        log.info("Starting Streaming Kafka data with Spark Job (Hopsworks)");
+
+        log.info("Starting Streaming Kafka data with Spark Job (Hopsworks):" + s.logName());
 
         if (args.length < 1) {  
             System.out.println("Usage: java ProducerKafkaHops <topic>");
             System.exit(1);     
         }
         String topic = args[0];
+        System.out.println("Producing for topic: " + topic);
 
         // hopefully this is the correct way to do it
         String eps = Hops.getBrokerEndpoints();
@@ -53,6 +54,7 @@ public class ProducerKafkaHops {
                 String v = "{\"quantityKind\":\"temperature\",\"value\":" + Integer.toString(i + 1) + "}";
                 myProducer.send(new ProducerRecord<String, String>(topic,
                                 "value", v), callback);
+                myProducer.flush();
             }
         } catch (Exception e) {
             System.out.println("Kafka Failed...");
