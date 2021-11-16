@@ -23,15 +23,10 @@ dependencies {
     extraLibs 'ch.qos.logback:logback-classic:1.2.2'
 }
 
-jar {    
-    from {
-            configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
-        }
-}
-
 task fatJar(type: Jar) {
-    baseName = 'all-in-one-jar'
+    baseName = 'hops-test-all-in-one-jar'
     from { 
             configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    with jar
 }
