@@ -65,6 +65,10 @@ public class ConsumerKafkaSASL_SSL {
         consumer.close();
     }
 
+    public KafkaConsumer<String, String> getKafkaConsumer() {
+        return consumer;
+    }
+
     public static void main(String[] args) {
         Properties properties = new Properties();
         if (args.length < 1) {
@@ -78,7 +82,6 @@ public class ConsumerKafkaSASL_SSL {
         /* use default properties */
         kafkaClient.connect(null);
 
-        
         try {
             /* Try to consume 100 messages - or 100 timeouts */
             for (int i = 0; i < 100; i++) {
