@@ -4,29 +4,44 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+
+import io.hops.util.Hops;
 import se.rise.kafkatest.producer.ProducerKafkaHops;
 import se.rise.kafkatest.consumer.ConsumerKafkaSASL_SSL;
 import java.time.Duration;
 
 public class Eventhub2Hops {
     public static void main(String[] args) {
-        if (args.length < 2) {  
+        String sharedAccessKey = null;
+        String topic = null;
+        try {
+            sharedAccessKey = Hops.getSecret("EventHubKey");
+            topic = Hops.getSecret("KafkaTopic");
+            System.out.println("Topic:" + topic);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        /* If not secrets are available - read arguments */
+        if (sharedAccessKey == null && args.length < 2) {  
             System.out.println("Usage: java Eventhub2Hops <EventHub Shared access key> <hopstopic>");
             System.exit(1);
         }
-
+        if (sharedAccessKey == null) {
+            sharedAccessKey = args[0];
+        }
+        if (topic == null) {
+            topic = args[1];
+        }
         /* Setup Hops producer */
         ProducerKafkaHops hopsProducer = new ProducerKafkaHops();
         KafkaProducer<String, String> producer = hopsProducer.getKafkaProducer();
 
-        /* Setup Hops consumer */
-        String sharedAccessKey = args[0];
+        /* Setup Hops consumer */        
         ConsumerKafkaSASL_SSL kafkaClient = new ConsumerKafkaSASL_SSL(sharedAccessKey);
         /* use default properties */
         kafkaClient.connect(null);
         KafkaConsumer<String, String> consumer = kafkaClient.getKafkaConsumer();
 
-        String topic = args[1];
         System.out.println("Producing to Hops for topic: " + topic);
 
         try {
