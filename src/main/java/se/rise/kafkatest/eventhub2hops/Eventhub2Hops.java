@@ -14,23 +14,47 @@ public class Eventhub2Hops {
     public static void main(String[] args) {
         String sharedAccessKey = null;
         String topic = null;
+        /* Default loop count unless specified otherwise using argument */
+        int count = 100;
+        for (int i = 0; i < args.length; i += 2) {
+            if (i >= args.length - 1) {
+                usage("Too few arguments");
+                return;
+            }
+            String name = args[i];
+            String value = args[i + 1];
+            if ("-c".equals(name)) {
+                count = Integer.parseInt(value);
+            } else if ("-t".equals(name)) {
+                topic = value;
+            } else if ("-k".equals(name)) {
+                sharedAccessKey = value;
+            } else if ("-h".equals(name)) {
+                usage("");
+                return;
+            } else {
+                usage("Unknown argument \"" + name + "\"!");
+                return;
+            }
+        }
         try {
-            sharedAccessKey = Hops.getSecret("EventHubKey");
-            topic = Hops.getSecret("KafkaTopic");
-            System.out.println("Topic:" + topic);
+            if (sharedAccessKey == null) {
+                sharedAccessKey = Hops.getSecret("EventHubKey");
+            }
+            if (topic == null) {
+                topic = Hops.getSecret("KafkaTopic");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         /* If not secrets are available - read arguments */
-        if (sharedAccessKey == null && args.length < 2) {  
-            System.out.println("Usage: java Eventhub2Hops <EventHub Shared access key> <hopstopic>");
-            System.exit(1);
-        }
         if (sharedAccessKey == null) {
-            sharedAccessKey = args[0];
+            usage("No access key found!");
+            return;
         }
         if (topic == null) {
-            topic = args[1];
+            usage("No Kafka topic found!");
+            return;
         }
         /* Setup Hops producer */
         ProducerKafkaHops hopsProducer = new ProducerKafkaHops();
@@ -45,15 +69,14 @@ public class Eventhub2Hops {
         System.out.println("Producing to Hops for topic: " + topic);
 
         try {
-            /* Try to consume 100 messages - or 100 timeouts */
-            for (int i = 0; i < 100; i++) {
-                ConsumerRecords<String, String> records =consumer.poll(Duration.ofSeconds(5));
+            /* Try to consume specified number of messages - or timeouts */
+            for (int i = 0; i < count || count == 0; i++) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
                 System.out.println("--------------------");
                 System.out.println("Received: " + records.count() + " records.");
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println("Simple String message received: " + String.valueOf(record.value()));
-                    producer.send(new ProducerRecord<String, String>(topic,
-                                record.key(), record.value()), hopsProducer.callback);
+                    System.out.println("Simple String message received: " + record.value());
+                    producer.send(new ProducerRecord<>(topic, record.key(), record.value()), hopsProducer.callback);
                     producer.flush();
                 }
                 System.out.println("--------------------");
@@ -66,5 +89,13 @@ public class Eventhub2Hops {
             hopsProducer.shutdown();
         }
     }
-}
 
+    private static void usage(String message) {
+        if (!message.isEmpty()) {
+            System.err.println("Error: " + message);
+        }
+        System.out.println("Usage: " + Eventhub2Hops.class.getName() + " [-c count] [-t topic] [-k access-key]");
+        System.exit(message.isEmpty() ? 0 : 2);
+    }
+
+}
