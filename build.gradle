@@ -25,7 +25,7 @@ dependencies {
 }
 
 task fatJar(type: Jar) {
-    baseName = 'hops-test-all-in-one'
+    archiveBaseName = 'hops-tests-all-in-one'
     from { 
             configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
