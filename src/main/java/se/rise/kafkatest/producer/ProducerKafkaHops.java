@@ -1,27 +1,28 @@
 package se.rise.kafkatest.producer;
-import java.util.Properties;
+import io.hops.util.Hops;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.clients.producer.Callback;
-import io.hops.util.Hops;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
 
 public class ProducerKafkaHops {
 
+    private static final Logger log = LoggerFactory.getLogger(ProducerKafkaHops.class);
+
     private SparkSession sparkSession;
     private KafkaProducer<String, String> myProducer;
-    private Logger log;
 
     public Callback callback = new Callback() {
         public void onCompletion(RecordMetadata metadata, java.lang.Exception exception) {
             if (exception != null) {
-                System.out.println("Callback received - exception:" + exception.getMessage());
+                log.warn("Callback received - exception", exception);
             } else if (metadata != null) {
-                System.out.println("Callback received - ACK:" + metadata.toString());
+                log.debug("Callback received - ACK: {}", metadata);
             }
         }
     };
@@ -31,13 +32,10 @@ public class ProducerKafkaHops {
     }
 
     public ProducerKafkaHops() {
-        Properties properties = new Properties();
-        properties = Hops.getKafkaSSLProperties();
+        Properties properties = Hops.getKafkaSSLProperties();
         sparkSession = Hops.findSpark();
-        log = LogManager.getLogger(ProducerKafkaHops.class);
-        log.setLevel(Level.INFO);
 
-        log.info("Starting Streaming Kafka data with Spark Job (Hopsworks):" + sparkSession.logName());
+        log.info("Starting Streaming Kafka data with Spark Job (Hopsworks): {}", sparkSession.logName());
 
         // hopefully this is the correct way to do it
         String eps = Hops.getBrokerEndpoints();
@@ -47,7 +45,7 @@ public class ProducerKafkaHops {
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        myProducer = new KafkaProducer<String, String>(properties);
+        myProducer = new KafkaProducer<>(properties);
     }
 
     public void shutdown() {
@@ -69,8 +67,7 @@ public class ProducerKafkaHops {
         try {
             for (int i = 0; i < 10; i++) {
                 String v = "{\"quantityKind\":\"temperature\",\"value\":" + Integer.toString(i + 1) + "}";
-                producer.send(new ProducerRecord<String, String>(topic,
-                                "value", v), hopsProducer.callback);
+                producer.send(new ProducerRecord<>(topic, "value", v), hopsProducer.callback);
                 producer.flush();
             }
         } catch (Exception e) {

@@ -5,6 +5,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -12,11 +14,11 @@ import java.util.Properties;
 
 /* Example that consumes Kafka messages from IDUN / Proptech OS 
 *  For Fastighetsdatalabbet.
-*
-*
 */
 
 public class ConsumerKafkaSASL_SSL {
+
+    private static final Logger log = LoggerFactory.getLogger(ConsumerKafkaSASL_SSL.class);
 
     private static String HOST = "idun-multiprod-streamingapi-fastighetsdatalabbet.servicebus.windows.net";
     private static String KAFKA_HOST = HOST + ":9093";
@@ -49,15 +51,15 @@ public class ConsumerKafkaSASL_SSL {
         final Callback callback = new Callback() {
             public void onCompletion(RecordMetadata metadata, Exception exception) {
                 if (exception != null) {
-                    System.out.println("Callback received - exception:" + exception.getMessage());
+                    log.warn("Callback received - error", exception);
                 } else if (metadata != null) {
-                    System.out.println("Callback received - ACK:" + metadata.toString());
+                    log.debug("Callback received - ACK: {}", metadata);
                 }
             }
         };
 
         /* This is a test for IoT Hub / Fastighetsdatalabbet - lets just consume from EventHub name (TOPIC)*/
-        consumer = new KafkaConsumer<String, String>(properties);
+        consumer = new KafkaConsumer<>(properties);
         consumer.subscribe(Arrays.asList(TOPIC));
     }
 
@@ -70,9 +72,8 @@ public class ConsumerKafkaSASL_SSL {
     }
 
     public static void main(String[] args) {
-        Properties properties = new Properties();
         if (args.length < 1) {
-            System.out.println("Please provide Shared Access key for:" + HOST);
+            System.out.println("Please provide Shared Access key for " + HOST);
             return;
         }
 
@@ -89,7 +90,7 @@ public class ConsumerKafkaSASL_SSL {
                 System.out.println("--------------------");
                 System.out.println("Received: " + records.count() + " records.");
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println("Simple String message= " + String.valueOf(record.value()));
+                    System.out.println("Simple String message= " + record.value());
                 }
                 System.out.println("--------------------");
             }
@@ -97,8 +98,7 @@ public class ConsumerKafkaSASL_SSL {
             System.out.println("Kafka Failed...");
             e.printStackTrace();
         } finally {
-          
+            kafkaClient.close();
         }
     }
 }
-

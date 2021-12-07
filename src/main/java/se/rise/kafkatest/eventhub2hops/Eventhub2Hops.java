@@ -6,11 +6,16 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import io.hops.util.Hops;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.rise.kafkatest.producer.ProducerKafkaHops;
 import se.rise.kafkatest.consumer.ConsumerKafkaSASL_SSL;
 import java.time.Duration;
 
 public class Eventhub2Hops {
+
+    private static final Logger log = LoggerFactory.getLogger(Eventhub2Hops.class);
+
     public static void main(String[] args) {
         String sharedAccessKey = null;
         String topic = null;
@@ -66,24 +71,23 @@ public class Eventhub2Hops {
         kafkaClient.connect(null);
         KafkaConsumer<String, String> consumer = kafkaClient.getKafkaConsumer();
 
-        System.out.println("Producing to Hops for topic: " + topic);
+        log.info("Producing to Hops for topic: {}", topic);
 
         try {
             /* Try to consume specified number of messages - or timeouts */
             for (int i = 0; i < count || count == 0; i++) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
-                System.out.println("--------------------");
-                System.out.println("Received: " + records.count() + " records.");
+                log.info("--------------------");
+                log.info("Received {} records.", records.count());
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println("Simple String message received: " + record.value());
+                    log.info("Simple String message received: {}", record.value());
                     producer.send(new ProducerRecord<>(topic, record.key(), record.value()), hopsProducer.callback);
                     producer.flush();
                 }
-                System.out.println("--------------------");
+                log.info("--------------------");
             }
         } catch (Exception e) {
-            System.out.println("Kafka Failed...");
-            e.printStackTrace();
+            log.error("Kafka Failed...", e);
         } finally {
             kafkaClient.close();
             hopsProducer.shutdown();
