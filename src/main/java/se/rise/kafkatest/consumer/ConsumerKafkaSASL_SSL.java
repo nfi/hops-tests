@@ -3,13 +3,9 @@ package se.rise.kafkatest.consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.RecordMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
 /* Example that consumes Kafka messages from IDUN / Proptech OS 
@@ -18,14 +14,12 @@ import java.util.Properties;
 
 public class ConsumerKafkaSASL_SSL {
 
-    private static final Logger log = LoggerFactory.getLogger(ConsumerKafkaSASL_SSL.class);
-
-    private static String HOST = "idun-multiprod-streamingapi-fastighetsdatalabbet.servicebus.windows.net";
-    private static String KAFKA_HOST = HOST + ":9093";
-    private static String TOPIC = "idun-multiprod-eventhub-recipient-fastighetsdatalabbet";
+    private static final String HOST = "idun-multiprod-streamingapi-fastighetsdatalabbet.servicebus.windows.net";
+    private static final String KAFKA_HOST = HOST + ":9093";
+    private static final String TOPIC = "idun-multiprod-eventhub-recipient-fastighetsdatalabbet";
 
     private KafkaConsumer<String, String> consumer;
-    private String sharedAccessKey;
+    private final String sharedAccessKey;
 
     public ConsumerKafkaSASL_SSL(String sharedAccessKey) {
         this.sharedAccessKey = sharedAccessKey;
@@ -48,19 +42,9 @@ public class ConsumerKafkaSASL_SSL {
         properties.put("sasl.mechanism", "PLAIN");
         properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$ConnectionString\" password=\"Endpoint=sb://" + HOST + "/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=" + sharedAccessKey + "\";");
 
-        final Callback callback = new Callback() {
-            public void onCompletion(RecordMetadata metadata, Exception exception) {
-                if (exception != null) {
-                    log.warn("Callback received - error", exception);
-                } else if (metadata != null) {
-                    log.debug("Callback received - ACK: {}", metadata);
-                }
-            }
-        };
-
         /* This is a test for IoT Hub / Fastighetsdatalabbet - lets just consume from EventHub name (TOPIC)*/
         consumer = new KafkaConsumer<>(properties);
-        consumer.subscribe(Arrays.asList(TOPIC));
+        consumer.subscribe(Collections.singletonList(TOPIC));
     }
 
     public void close() {

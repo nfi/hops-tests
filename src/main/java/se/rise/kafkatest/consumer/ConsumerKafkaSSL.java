@@ -32,16 +32,7 @@ public class ConsumerKafkaSSL {
         properties.put("ssl.keystore.password", password);
         properties.put("ssl.key.password", password);
 
-        final Callback callback = new Callback() {
-            public void onCompletion(RecordMetadata metadata, Exception exception) {
-                if (exception != null) {
-                    System.out.println("Callback received - exception:" + exception.getMessage());
-                } else if (metadata != null) {
-                    System.out.println("Callback received - ACK:" + metadata.toString());
-                }
-            }
-        };
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(properties);
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
         consumer.subscribe(Arrays.asList(KafkaConfig.TOPIC));
 
         try {
@@ -50,7 +41,7 @@ public class ConsumerKafkaSSL {
                 ConsumerRecords<String, String> records = consumer.poll(100);
                 System.out.println("Received: " + records.count() + " records.");
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println("Simple String message= " + String.valueOf(record.value()));
+                    System.out.println("Simple String message= " + record.value());
                 }
             }
         } catch (Exception e) {
